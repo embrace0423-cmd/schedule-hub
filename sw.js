@@ -1,6 +1,6 @@
 // 서비스 워커 — 앱 화면(정적 파일)을 캐시해 오프라인에서도 열리게 한다.
 // Google API 요청은 가로채지 않는다(데이터 캐시는 IndexedDB가 담당).
-const VERSION = 'sh-v1.0.0';
+const VERSION = 'sh-v1.0.1';
 const ASSETS = [
   "./",
   "config.js",
