@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>스케줄 허브</title>
+  <meta name="description" content="Google 캘린더·삼성 캘린더와 동기화되는 통합 일정·할 일·루틴 관리 앱">
+  <meta name="theme-color" content="#f5f6fa">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="스케줄 허브">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div id="app" aria-busy="true">
+    <aside class="sidebar" aria-label="사이드바">
+      <div class="brand"><img src="icons/icon-192.png" alt=""><span>스케줄 허브</span></div>
+      <button class="btn primary" data-action="new-any" style="width:100%;min-height:42px">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>새로 만들기</button>
+      <nav class="nav" aria-label="메뉴"></nav>
+      <div class="side-sec mini" id="mini"></div>
+      <div class="side-sec"><h4>영역</h4><div class="arealist" id="area-list"></div></div>
+      <div class="side-foot" id="side-status"></div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <h1 id="page-title">스케줄 허브</h1>
+        <span class="grow"></span>
+        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="top-search" type="search" placeholder="검색 ( / )" aria-label="검색"></label>
+        <button class="btn ghost icon mobile-only" data-action="search-mobile" aria-label="검색" id="search-m">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        <button class="btn ghost icon" id="sync-btn" data-action="sync-btn" aria-label="동기화"></button>
+      </header>
+      <div id="banner" role="status"></div>
+      <section id="view" aria-live="polite">
+        <div class="empty" style="padding:60px 0">불러오는 중…</div>
+      </section>
+    </main>
+    <nav class="tabbar" aria-label="하단 메뉴"></nav>
+    <button class="fab" id="fab" data-action="fab" aria-label="새로 만들기">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  <div id="modal-root"></div>
+  <div id="toast-root" aria-live="assertive"></div>
+  <noscript>이 앱은 JavaScript가 필요합니다.</noscript>
+</body>
+</html>
