@@ -6,7 +6,7 @@ import { hiddenCals, routineName, writableCalendars, calName, isRoutineCal } fro
 import { prefs } from '../prefs.js';
 import { defaultCalId } from '../editors.js';
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.0.2';
 
 function ago(ts) {
   if (!ts) return '없음';
@@ -48,7 +48,7 @@ export function renderSettings(el, ctx) {
 
   el.innerHTML = `<div class="settings">
   <section class="card" id="google">
-    <header><h3>Google 연결</h3><span class="end">${pill}</span></header>
+    <header><h3>캘린더 연결 (Google)</h3><span class="end">${pill}</span></header>
     <div class="body">
       ${!secure ? `<div class="notice err">이 주소(${esc(location.origin)})는 HTTPS가 아니어서 Google 로그인과 앱 설치가 동작하지 않습니다. GitHub Pages 같은 HTTPS 주소에서 여세요.</div>` : ''}
       ${missing.length ? `<div class="notice warn">일부 권한이 허용되지 않았습니다(${missing.map((s) => s.split('/').pop()).join(', ')}). [다시 연결]을 눌러 모두 체크해 주세요.</div>` : ''}
@@ -62,9 +62,10 @@ export function renderSettings(el, ctx) {
             ? `<button class="btn primary" data-action="demo-off">데모 종료하고 실제 계정 연결</button>`
             : connected
               ? `<button class="btn" data-action="sync-now">${icon('refresh')}지금 동기화</button><button class="btn" data-action="login" data-consent="1">권한 다시 받기</button><button class="btn danger" data-action="logout">연결 해제</button>`
-              : `<button class="btn primary" data-action="login" ${clientId && secure ? '' : 'disabled'}>${icon('google')}Google 계정 연결</button>`
+              : `<button class="btn primary" data-action="login" ${clientId && secure ? '' : 'disabled'}>${icon('link')}캘린더 동기화 연결</button>`
         }
       </div>
+      <p class="hint">연결 버튼을 누르면 Google 공식 로그인 페이지(accounts.google.com)로 이동합니다. 이 앱은 비밀번호를 묻거나 저장하지 않으며, 캘린더·할 일 접근 권한만 요청합니다.</p>
       <details ${clientId ? '' : 'open'} style="margin-top:12px">
         <summary style="cursor:pointer;font-weight:650">Google Cloud 설정 방법 (처음 1회, 약 10분)</summary>
         <ol class="steps">
@@ -73,7 +74,7 @@ export function renderSettings(el, ctx) {
           <li><b>Google 인증 플랫폼(OAuth 동의 화면) → 시작하기</b>: 앱 이름 "스케줄 허브", 지원 이메일 선택, 대상 <b>외부</b>, 연락처 이메일 입력 후 만들기.</li>
           <li><b>대상(Audience) → 테스트 사용자 → 사용자 추가</b>에 본인 Gmail 주소 추가.</li>
           <li><b>클라이언트 → 클라이언트 만들기</b>: 유형 <b>웹 애플리케이션</b>, 아래 두 값을 그대로 붙여넣기 후 만들기.</li>
-          <li>표시된 <b>클라이언트 ID</b>를 위 입력란에 붙여넣고 [저장] → [Google 계정 연결].</li>
+          <li>표시된 <b>클라이언트 ID</b>를 위 입력란에 붙여넣고 [저장] → [캘린더 동기화 연결].</li>
           <li>"Google에서 확인하지 않은 앱" 화면이 나오면 <b>고급 → 스케줄 허브(으)로 이동</b>을 누르고, 캘린더·할 일 권한을 <b>모두 체크</b>해 허용하세요(본인만 쓰는 앱이라 정상입니다).</li>
         </ol>
       </details>
@@ -149,7 +150,9 @@ export function renderSettings(el, ctx) {
     <div class="body">
       <div class="kv"><span class="k">버전</span><span>스케줄 허브 v${APP_VERSION}</span></div>
       <div class="kv"><span class="k">단축키 (PC)</span><span class="muted">N 새 일정 · T 할 일 · / 검색 · 1–5 화면 전환</span></div>
-      <p class="hint">별도 서버 없이 브라우저에서 Google에 직접 연결합니다. 접근 토큰은 이 기기에만 저장되고 1시간마다 자동 갱신됩니다.</p>
+      <div class="kv"><span class="k">용도</span><span class="muted" style="text-align:right">개인 일정 관리용 앱(비공개 테스트 앱)</span></div>
+      <p class="hint">별도 서버 없이 브라우저에서 Google에 직접 연결합니다. 비밀번호는 이 앱에 입력되지 않으며, 접근 토큰은 이 기기에만 저장되고 1시간마다 자동 갱신됩니다.</p>
+      <p class="hint"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리 안내</a> · <a href="https://github.com/embrace0423-cmd/schedule-hub" target="_blank" rel="noopener">소스 코드</a></p>
     </div>
   </section>
   </div>`;
