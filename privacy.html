@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>개인정보 처리 안내 · 스케줄 허브</title>
+  <meta name="description" content="스케줄 허브(개인 일정 관리 앱)의 개인정보 처리 안내">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <style>
+    :root { --bg:#f5f6fa; --fg:#1d2230; --muted:#5d6475; --card:#fff; --line:#e3e6ee; --acc:#3a5bd9; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#14161c; --fg:#e8eaf0; --muted:#a0a6b4; --card:#1d2029; --line:#2c303b; --acc:#8ea6ff; } }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.65 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+    main { max-width:720px; margin:0 auto; padding:32px 16px 48px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-top:16px; }
+    h1 { font-size:24px; margin:0 0 4px; } h2 { font-size:17px; margin:0 0 8px; }
+    p, li { color:var(--fg); } .muted { color:var(--muted); font-size:14px; }
+    a { color:var(--acc); } ul { padding-left:20px; margin:0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>개인정보 처리 안내</h1>
+  <p class="muted">스케줄 허브 — 개인 일정·할 일·루틴 관리 앱 · 시행일 2026-10-06</p>
+
+  <div class="card">
+    <h2>이 앱은 무엇인가요</h2>
+    <p>스케줄 허브는 운영자 본인이 일정·할 일·루틴을 관리하려고 만든 개인용 앱입니다. 별도의 서버가 없으며, 앱 화면(HTML·JavaScript)만 이 주소에서 제공됩니다. 소스 코드는 <a href="https://github.com/embrace0423-cmd/schedule-hub">GitHub</a>에 공개되어 있습니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>로그인과 비밀번호</h2>
+    <ul>
+      <li>이 앱에는 비밀번호 입력란이 없으며, 비밀번호를 묻거나 저장하지 않습니다.</li>
+      <li>[캘린더 동기화 연결]을 누르면 Google 공식 로그인 페이지(<b>accounts.google.com</b>)로 이동해 Google 표준 OAuth 2.0 방식으로 권한을 허용합니다.</li>
+      <li>요청하는 권한은 Google 캘린더(일정 읽기·쓰기)와 Google Tasks(할 일 읽기·쓰기) 두 가지뿐입니다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>데이터 저장 위치</h2>
+    <ul>
+      <li>일정·루틴은 사용자의 Google 캘린더에, 할 일은 Google Tasks에 저장됩니다.</li>
+      <li>오프라인 사용을 위한 사본과 1시간짜리 접근 토큰은 사용 중인 기기의 브라우저 저장소에만 보관됩니다.</li>
+      <li>데이터는 브라우저에서 Google API(googleapis.com)로 직접 전송되며, 운영자나 제3자의 서버로 전송·판매·공유되지 않습니다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>연결 해제와 삭제</h2>
+    <ul>
+      <li>앱의 [설정 → 연결 해제]로 접근 토큰을 폐기할 수 있습니다.</li>
+      <li>Google 계정의 <a href="https://myaccount.google.com/connections">타사 연결 관리</a>에서도 언제든 권한을 철회할 수 있습니다.</li>
+      <li>[설정 → 이 기기 사본 초기화]로 기기에 남은 사본을 지울 수 있습니다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>문의</h2>
+    <p><a href="https://github.com/embrace0423-cmd/schedule-hub">GitHub 저장소</a>를 통해 운영자에게 연락할 수 있습니다.</p>
+  </div>
+  <p class="muted"><a href="./">← 앱으로 돌아가기</a></p>
+</main>
+</body>
+</html>
