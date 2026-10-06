@@ -24,7 +24,6 @@ const P = {
   copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
-  google: '<path d="M21 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5a4.3 4.3 0 0 1-1.9 2.8v2.3h3A9 9 0 0 0 21 12.2z"/><path d="M12 21c2.5 0 4.6-.8 6.1-2.2l-3-2.3a5.4 5.4 0 0 1-8.1-2.9H4v2.4A9 9 0 0 0 12 21z"/><path d="M7 13.6a5.4 5.4 0 0 1 0-3.4V7.8H4a9 9 0 0 0 0 8.1z"/><path d="M12 6.6c1.4 0 2.6.5 3.6 1.4L18.2 5.4A9 9 0 0 0 4 7.8l3 2.4a5.4 5.4 0 0 1 5-3.6z"/>',
 };
 export const icon = (name, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
 

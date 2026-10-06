@@ -153,7 +153,7 @@ function bannerHtml() {
   if (!auth.getClientId())
     return box('', '처음 오셨나요? <b>설정 → Google 연결</b>에서 클라이언트 ID를 등록하면 갤럭시 삼성 캘린더와 동기화됩니다.', `<a class="btn sm primary" href="#/settings">설정하기</a><button class="btn sm" data-action="demo-on">데모로 둘러보기</button>`);
   if (!auth.isConnectedBefore() && !gapi.hasToken())
-    return box('', 'Google 계정을 연결하면 일정·할 일이 PC와 휴대폰에서 함께 동기화됩니다.', `<button class="btn sm primary" data-action="login">${icon('google')}Google 연결</button>`);
+    return box('', '캘린더를 연결하면 일정·할 일이 PC와 휴대폰에서 함께 동기화됩니다. (로그인은 Google 공식 페이지에서 진행되며 이 앱은 비밀번호를 받지 않습니다.)', `<button class="btn sm primary" data-action="login">${icon('link')}캘린더 연결</button>`);
   if (state.authState === 'expired')
     return box('warn', `Google 연결이 만료되었습니다${n ? ` — 전송 대기 ${n}건` : ''}. 다시 연결하면 이어서 동기화합니다.`, `<button class="btn sm primary" data-action="login">다시 연결</button>`);
   if (!state.online) return box('warn', `${icon('cloudoff')} 오프라인 — ${n ? `변경 ${n}건은 연결되면 자동으로 Google에 반영됩니다.` : '저장된 사본을 보여주고 있습니다.'}`);
@@ -321,7 +321,7 @@ function registerActions() {
     const v = document.getElementById('client-id').value.trim();
     if (v && !/\.apps\.googleusercontent\.com$/.test(v)) return showToast('클라이언트 ID는 ".apps.googleusercontent.com" 으로 끝나야 합니다.', 'error');
     auth.setClientId(v);
-    showToast(v ? '클라이언트 ID를 저장했습니다. 이제 [Google 계정 연결]을 누르세요.' : '클라이언트 ID를 지웠습니다.');
+    showToast(v ? '클라이언트 ID를 저장했습니다. 이제 [캘린더 동기화 연결]을 누르세요.' : '클라이언트 ID를 지웠습니다.');
     render();
   });
   on('login', (el) => {
