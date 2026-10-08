@@ -407,12 +407,18 @@ function newChooser() {
 
 function setupAreasDialog() {
   const existing = new Set(state.calendars.map((c) => c.summary));
-  const rows = DEFAULT_AREAS.map(
-    (a, i) => `<label class="kv" style="cursor:pointer"><span class="row"><span class="dot" style="background:${a.color}"></span>
-      <input type="text" class="inp" data-name="${i}" value="${esc(a.name)}" style="height:34px;width:180px" ${existing.has(a.name) ? 'disabled' : ''}>
+  const lists = new Set(state.tasklists.map((l) => l.title));
+  const pick = (i) => `<label class="switch"><input type="checkbox" data-pick="${i}" checked><i></i></label>`;
+  const rows = DEFAULT_AREAS.map((a, i) => {
+    const calHas = existing.has(a.name);
+    // 캘린더는 있는데 같은 이름 할 일 목록이 없으면(예: 원래 있던 '가족') 목록만 추가
+    const listOnly = calHas && !a.routine && !lists.has(a.name);
+    const right = !calHas ? pick(i) : listOnly ? `<span class="row"><span class="chip">할 일 목록만 추가</span>${pick(i)}</span>` : '<span class="chip">이미 있음</span>';
+    return `<label class="kv" style="cursor:pointer"><span class="row"><span class="dot" style="background:${a.color}"></span>
+      <input type="text" class="inp" data-name="${i}" value="${esc(a.name)}" style="height:34px;width:180px" ${calHas ? 'disabled' : ''}>
       ${a.routine ? '<span class="chip">루틴용</span>' : ''}</span>
-      ${existing.has(a.name) ? '<span class="chip">이미 있음</span>' : `<label class="switch"><input type="checkbox" data-pick="${i}" checked><i></i></label>`}</label>`
-  ).join('');
+      ${right}</label>`;
+  }).join('');
   openModal({
     title: '기본 영역 만들기',
     body: `<p class="hint" style="margin:0">각 영역마다 Google 캘린더 1개와 같은 이름의 할 일 목록 1개를 만듭니다. 이름은 바꿀 수 있습니다. 갤럭시 삼성 캘린더에서는 <b>메뉴 → 캘린더 관리</b>에서 새 캘린더가 켜져 있는지 확인하세요.</p>${rows}`,

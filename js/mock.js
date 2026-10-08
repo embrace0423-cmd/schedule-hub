@@ -21,7 +21,7 @@ function merge(a, b) {
 const utcStamp = (d) =>
   `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
 
-export function createMock({ now = new Date(), areas = true, tz = 'Asia/Seoul' } = {}) {
+export function createMock({ now = new Date(), areas = true, tz = 'Asia/Seoul', familyList = true } = {}) {
   const T = startOfDay(now);
   const db = { cals: [], events: {}, overrides: {}, lists: [], tasks: {} };
   const addCal = (id, summary, color, extra = {}) => {
@@ -66,12 +66,12 @@ export function createMock({ now = new Date(), areas = true, tz = 'Asia/Seoul' }
     insertEvent(HOL, { summary: n, start: { date: ymd(d) }, end: { date: ymd(addDays(d, 1)) } });
   }
   const DEF = addList('내 할 일');
-  const LF = addList('가족');
+  const LF = familyList ? addList('가족') : null; // familyList:false = 실제 계정처럼 '가족' 캘린더만 있고 할 일 목록은 없는 상태
   timed(P, '주간 경영회의', 0, 10, 0, 60, { location: '본사 회의실' });
   timed(P, '세무사 미팅', -2, 15, 0, 60);
   timed(FAM, '가족 저녁 식사', 0, 19, 0, 120);
   addTask(DEF, '사업자등록 서류 준비', -1, { notes: '우선순위:높음' });
-  addTask(LF, '어머니 생신 선물 준비', 6);
+  if (LF) addTask(LF, '어머니 생신 선물 준비', 6);
   if (areas) {
     const F = addCal(gid() + '@group.calendar.google.com', '대동·외식', '#F4511E');
     const C = addCal(gid() + '@group.calendar.google.com', '대동·건설', '#3F51B5');
