@@ -6,7 +6,7 @@ import { hiddenCals, routineName, writableCalendars, calName, isRoutineCal } fro
 import { prefs } from '../prefs.js';
 import { defaultCalId } from '../editors.js';
 
-export const APP_VERSION = '1.0.3';
+export const APP_VERSION = '1.0.4';
 
 function ago(ts) {
   if (!ts) return '없음';
