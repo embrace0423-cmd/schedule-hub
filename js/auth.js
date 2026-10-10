@@ -23,7 +23,8 @@ export function setClientId(id) {
 }
 
 export function redirectUri() {
-  const path = location.pathname.replace(/index\.html$/, '');
+  // 앱 폴더 주소로 고정(…/index.html, …/다른파일.html → …/) — Google에 등록된 리디렉션 URI와 항상 일치
+  const path = location.pathname.replace(/[^/]*$/, '');
   return location.origin + path;
 }
 
