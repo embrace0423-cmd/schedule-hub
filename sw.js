@@ -1,6 +1,6 @@
 // 서비스 워커 — 앱 화면(정적 파일)을 캐시해 오프라인에서도 열리게 한다.
 // Google API 요청은 가로채지 않는다(데이터 캐시는 IndexedDB가 담당).
-const VERSION = 'sh-v1.0.3';
+const VERSION = 'sh-v1.0.4';
 const ASSETS = [
   "./",
   "config.js",
@@ -56,7 +56,20 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   const isNav = req.mode === 'navigate';
-  const key = isNav ? new URL('./index.html', self.location).href : req;
+  const scopePath = new URL('./', self.location).pathname;
+  // 앱 화면(루트·index.html)으로 이동할 때만 앱 셸(index.html)로 응답한다.
+  // 그 밖의 페이지(privacy.html, 소유 확인 파일 등)는 네트워크 우선 + 자기 주소로만 캐시 → index.html 캐시를 덮어쓰지 않음
+  const isAppNav = isNav && (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
+  if (isNav && !isAppNav) {
+    e.respondWith(
+      fetch(req).catch(async () =>
+        (await caches.match(req, { ignoreSearch: true })) ||
+        new Response('오프라인입니다', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
+      )
+    );
+    return;
+  }
+  const key = isAppNav ? new URL('./index.html', self.location).href : req;
   e.respondWith(
     caches.open(VERSION).then(async (cache) => {
       const cached = await cache.match(key, { ignoreSearch: isNav });
