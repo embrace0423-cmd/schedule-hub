@@ -67,7 +67,8 @@ export function bindMonthSwipe(root) {
     if (performance.now() - g.at > MAX_DURATION ||
       Math.abs(window.scrollY - g.scrollY) > 8 ||
       Math.abs(dx) < g.threshold || Math.abs(dx) <= Math.abs(dy) * AXIS_RATIO) return;
-    location.hash = dx < 0 ? g.next : g.previous;
+    // 왼쪽 스와이프는 이전 달, 오른쪽 스와이프는 다음 달로 이동한다.
+    location.hash = dx < 0 ? g.previous : g.next;
   }, { passive: true });
 
   root.addEventListener('touchcancel', () => { gesture = null; }, { passive: true });
