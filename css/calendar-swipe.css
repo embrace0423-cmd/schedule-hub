@@ -1,0 +1,4 @@
+/* 가로 터치만 앱에서 처리하고 세로 스크롤·두 손가락 확대는 브라우저에 맡긴다. */
+#view .month {
+  touch-action: pan-y pinch-zoom;
+}
