@@ -1,10 +1,11 @@
 // 서비스 워커 — 앱 화면(정적 파일)을 캐시해 오프라인에서도 열리게 한다.
 // Google API 요청은 가로채지 않는다(데이터 캐시는 IndexedDB가 담당).
-const VERSION = 'sh-v1.0.5';
+const VERSION = 'sh-v1.0.6';
 const ASSETS = [
   "./",
   "config.js",
   "css/app.css",
+  "css/calendar-swipe.css",
   "icons/apple-touch-icon.png",
   "icons/favicon-32.png",
   "icons/icon-192.png",
@@ -13,6 +14,7 @@ const ASSETS = [
   "index.html",
   "js/areas.js",
   "js/auth.js",
+  "js/calendar-swipe.js",
   "js/dates.js",
   "js/db.js",
   "js/editors.js",
