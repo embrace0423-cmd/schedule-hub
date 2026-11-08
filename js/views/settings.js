@@ -6,7 +6,8 @@ import { hiddenCals, routineName, writableCalendars, calName, isRoutineCal } fro
 import { prefs } from '../prefs.js';
 import { defaultCalId } from '../editors.js';
 
-export const APP_VERSION = '1.0.4';
+import { APP_VERSION } from '../app-version.js';
+export { APP_VERSION };
 
 function ago(ts) {
   if (!ts) return '없음';
@@ -148,7 +149,10 @@ export function renderSettings(el, ctx) {
   <section class="card">
     <header><h3>정보</h3></header>
     <div class="body">
-      <div class="kv"><span class="k">버전</span><span>스케줄 허브 v${APP_VERSION}</span></div>
+      <div class="kv"><span class="k">버전</span><span id="app-version" data-app-version="${APP_VERSION}">스케줄 허브 v${APP_VERSION}</span></div>
+      <div class="kv"><span class="k">앱 업데이트</span><a class="btn sm" href="update.html">최신 앱 적용</a></div>
+      <div class="kv"><span class="k">월 이동</span><span class="muted">왼쪽으로 밀기: 이전 달 · 오른쪽으로 밀기: 다음 달<br>터치와 마우스 드래그 지원</span></div>
+      <div class="kv"><span class="k">실행 주소</span><span class="muted" style="overflow-wrap:anywhere;text-align:right">${esc(location.origin + location.pathname)}</span></div>
       <div class="kv"><span class="k">단축키 (PC)</span><span class="muted">N 새 일정 · T 할 일 · / 검색 · 1–5 화면 전환</span></div>
       <div class="kv"><span class="k">용도</span><span class="muted" style="text-align:right">개인 일정 관리용 앱(비공개 테스트 앱)</span></div>
       <p class="hint">별도 서버 없이 브라우저에서 Google에 직접 연결합니다. 비밀번호는 이 앱에 입력되지 않으며, 접근 토큰은 이 기기에만 저장되고 1시간마다 자동 갱신됩니다.</p>
