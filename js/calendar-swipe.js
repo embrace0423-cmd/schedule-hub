@@ -85,3 +85,30 @@ export function bindMonthSwipe(root) {
 }
 
 bindMonthSwipe(document.getElementById('view'));
+
+// 실행 중인 코드의 버전을 표시한다. 서버 배포 버전과 혼동하지 않도록 한다.
+export const SWIPE_VERSION = '1.0.8';
+document.documentElement.dataset.monthSwipeVersion = SWIPE_VERSION;
+const view = document.getElementById('view');
+function showSwipeHelp() {
+  const grid = view?.querySelector('.month');
+  if (!grid || view.querySelector('#month-swipe-help')) return;
+  const help = document.createElement('div');
+  help.id = 'month-swipe-help';
+  help.className = 'hint';
+  help.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:12px';
+  const label = document.createElement('span');
+  label.textContent = `← 이전 달 · 다음 달 → · v${SWIPE_VERSION}`;
+  const update = document.createElement('a');
+  update.href = new URL('update.html', document.baseURI).href;
+  update.textContent = '앱 업데이트';
+  help.append(label, update);
+  grid.before(help);
+  const ids = new Set((grid.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+  ids.add(help.id);
+  grid.setAttribute('aria-describedby', [...ids].join(' '));
+}
+if (view) {
+  new MutationObserver(showSwipeHelp).observe(view, { childList: true, subtree: true });
+  showSwipeHelp();
+}
