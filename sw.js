@@ -17,6 +17,16 @@ const ASSETS = [
 ];
 const paths = new Set(ASSETS.map((p) => new URL(p, SCOPE).pathname));
 
+async function cachedResponse(key) {
+  try { return await (await caches.open(VERSION)).match(key); }
+  catch { return null; }
+}
+async function rememberResponse(key, response) {
+  // 저장 공간 부족/브라우저 저장소 제한이 성공한 네트워크 응답을 버리게 해서는 안 된다.
+  try { await (await caches.open(VERSION)).put(key, response.clone()); }
+  catch { /* 캐시는 최선 노력으로만 저장한다. */ }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
@@ -50,11 +60,10 @@ self.addEventListener('fetch', (event) => {
   const fresh = appNav || /\.(?:html|js|css|webmanifest)$/.test(url.pathname);
   if (!fresh) {
     event.respondWith((async () => {
-      const cache = await caches.open(VERSION);
-      const cached = await cache.match(key);
+      const cached = await cachedResponse(key);
       if (cached) return cached;
       const res = await fetch(req);
-      if (res.ok && res.type === 'basic') await cache.put(key, res.clone());
+      if (res.ok && res.type === 'basic') await rememberResponse(key, res);
       return res;
     })());
     return;
@@ -62,8 +71,7 @@ self.addEventListener('fetch', (event) => {
   // HTML/JS/CSS는 최신 응답 우선. 오프라인에서는 저장된 화면으로 복귀한다.
   const network = fetch(req, { cache: 'no-cache' }).then(async (res) => {
     if (!res.ok || res.type !== 'basic') return null;
-    const cache = await caches.open(VERSION);
-    await cache.put(key, res.clone());
+    await rememberResponse(key, res);
     return res;
   }).catch(() => null);
   event.waitUntil(network.then(() => undefined));
@@ -73,8 +81,7 @@ self.addEventListener('fetch', (event) => {
     const res = await Promise.race([network, timeout]);
     clearTimeout(timer);
     if (res) return res;
-    const cache = await caches.open(VERSION);
-    return (await cache.match(key)) || (await network) ||
+    return (await cachedResponse(key)) || (await network) ||
       new Response('오프라인입니다. 연결 후 다시 시도하세요.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   })());
 });
