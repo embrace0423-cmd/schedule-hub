@@ -29,9 +29,9 @@ let miniMonth = startOfMonth(new Date());
 
 // ───────── 라우팅 ─────────
 function route() {
-  const h = location.hash || '#/today';
+  const h = location.hash || '#/calendar';
   const [path, q] = h.slice(1).split('?');
-  return { path: path || '/today', params: new URLSearchParams(q || '') };
+  return { path: path || '/calendar', params: new URLSearchParams(q || '') };
 }
 const NAV = [
   ['/today', '오늘', 'today'],
@@ -40,7 +40,7 @@ const NAV = [
   ['/routines', '루틴', 'routines'],
   ['/settings', '설정', 'settings'],
 ];
-const TITLES = { '/today': '오늘', '/calendar': '캘린더', '/tasks': '할 일', '/routines': '루틴', '/settings': '설정', '/search': '검색' };
+const TITLES = { '/today': '오늘', '/calendar': '통합 캘린더', '/tasks': '할 일', '/routines': '루틴', '/settings': '설정', '/search': '검색' };
 
 // ───────── 렌더 ─────────
 function captureKeep(root) {
@@ -277,13 +277,13 @@ function registerActions() {
   });
   on('cal-view', (el) => {
     prefs.calView = el.dataset.v;
-    location.hash = calHref(el.dataset.v, parseYMD(el.dataset.d));
+    location.hash = calHref(el.dataset.v, parseYMD(el.dataset.d), null, route().params.get('source'));
   });
   on('sel-day', (el) => {
     const day = parseYMD(el.dataset.date);
     const month = parseYMD(el.dataset.month);
     const target = day.getMonth() === month.getMonth() ? month : day;
-    history.replaceState(null, '', calHref('month', target, day));
+    history.replaceState(null, '', calHref('month', target, day, route().params.get('source')));
     render();
   });
   on('slot', (el, e) => {
@@ -299,7 +299,7 @@ function registerActions() {
   on('mini-day', (el) => {
     renderChrome.miniTouched = false;
     const d = parseYMD(el.dataset.date);
-    location.hash = calHref(prefs.calView === 'week' || prefs.calView === 'day' ? prefs.calView : 'month', d, d);
+    location.hash = calHref(prefs.calView === 'week' || prefs.calView === 'day' ? prefs.calView : 'month', d, d, route().params.get('source'));
   });
   on('toggle-cal-side', (el) => {
     toggleHidden(el.dataset.id);
@@ -358,7 +358,7 @@ function registerActions() {
   });
   on('demo-on', () => {
     ls.set('sh.demo', true);
-    location.href = location.pathname + '?demo#/today';
+    location.href = location.pathname + '?demo#/calendar';
   });
   on('demo-off', () => {
     if (PREVIEW) return showToast('미리보기에서는 데모만 사용할 수 있습니다.');
@@ -585,6 +585,7 @@ async function boot() {
   setupListeners();
   if (DEMO) await setupDemo();
   const r = DEMO ? null : auth.handleRedirect();
+  if (!location.hash) history.replaceState(null, '', '#/calendar');
   await store.load();
   store.subscribe(() => render());
   store.onToast((m, k) => showToast(m, k));

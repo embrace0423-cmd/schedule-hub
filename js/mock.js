@@ -67,9 +67,9 @@ export function createMock({ now = new Date(), areas = true, tz = 'Asia/Seoul', 
   }
   const DEF = addList('내 할 일');
   const LF = familyList ? addList('가족') : null; // familyList:false = 실제 계정처럼 '가족' 캘린더만 있고 할 일 목록은 없는 상태
-  timed(P, '주간 경영회의', 0, 10, 0, 60, { location: '본사 회의실' });
+  timed(P, '주간 경영회의', 0, 10, 0, 60, { location: '본사 회의실', extendedProperties: { private: { scheduleHubSource: 'gpt' } } });
   timed(P, '세무사 미팅', -2, 15, 0, 60);
-  timed(FAM, '가족 저녁 식사', 0, 19, 0, 120);
+  timed(FAM, '가족 저녁 식사', 0, 19, 0, 120, { description: '[ScheduleHub-Source: Claude]' });
   addTask(DEF, '사업자등록 서류 준비', -1, { notes: '우선순위:높음' });
   if (LF) addTask(LF, '어머니 생신 선물 준비', 6);
   if (areas) {

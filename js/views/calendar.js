@@ -7,28 +7,31 @@ import {
 } from '../dates.js';
 import { eventRow, taskRow, sortTasks, openTasks } from './common.js';
 import { prefs } from '../prefs.js';
+import { SOURCE_LABELS, eventSource, sourceFilter, sourceBadge } from '../event-source.js';
 
 const HOUR = 48;
 const isHoliday = (calId) => /holiday/i.test(calId);
 
-function visibleFilter() {
+function visibleFilter(source) {
   const hidden = hiddenCals();
-  return (e) => !hidden.has(e._cal);
+  return (e) => !hidden.has(e._cal) && (source === 'all' || eventSource(e) === source);
 }
 
 export function calParams(params) {
-  const v = params.get('v') || prefs.calView || (isMobile() ? 'month' : 'month');
+  const requested = params.get('v') || prefs.calView;
+  const v = ['month', 'week', 'day', 'list'].includes(requested) ? requested : 'month';
   const d = params.get('d') ? parseYMD(params.get('d')) : startOfDay(new Date());
   const sel = params.get('s') ? parseYMD(params.get('s')) : null;
-  return { v, d, sel };
+  return { v, d, sel, source: sourceFilter(params.get('source')) };
 }
 
-export function calHref(v, d, sel) {
-  return `#/calendar?v=${v}&d=${ymd(d)}${sel ? `&s=${ymd(sel)}` : ''}`;
+export function calHref(v, d, sel, source = 'all') {
+  const filter = sourceFilter(source);
+  return `#/calendar?v=${v}&d=${ymd(d)}${sel ? `&s=${ymd(sel)}` : ''}${filter === 'all' ? '' : '&source=' + filter}`;
 }
 
 export function renderCalendar(el, params) {
-  const { v, d, sel } = calParams(params);
+  const { v, d, sel, source } = calParams(params);
   const ws = prefs.weekStart;
   let title = fmtMonth(d);
   let prev, next;
@@ -57,19 +60,24 @@ export function renderCalendar(el, params) {
     ['list', '목록'],
   ];
   const tools = `<div class="cal-tools">
-    <button class="btn icon" data-action="nav" data-href="${calHref(v, prev)}" aria-label="이전">${icon('left')}</button>
-    <button class="btn" data-action="nav" data-href="${calHref(v, startOfDay(new Date()))}">오늘</button>
-    <button class="btn icon" data-action="nav" data-href="${calHref(v, next)}" aria-label="다음">${icon('right')}</button>
+    <button class="btn icon" data-action="nav" data-href="${calHref(v, prev, null, source)}" aria-label="이전">${icon('left')}</button>
+    <button class="btn" data-action="nav" data-href="${calHref(v, startOfDay(new Date()), null, source)}">오늘</button>
+    <button class="btn icon" data-action="nav" data-href="${calHref(v, next, null, source)}" aria-label="다음">${icon('right')}</button>
     <h2>${title}</h2><span class="grow"></span>
     <div class="seg">${VIEWS.map(([k, l]) => `<button data-action="cal-view" data-v="${k}" data-d="${ymd(d)}" class="${k === v ? 'on' : ''}">${l}</button>`).join('')}</div>
   </div>`;
 
+  const originControls = `<div class="source-filter" role="group" aria-label="일정 등록 경로">
+    <span>등록 경로</span><div class="seg">${Object.entries(SOURCE_LABELS).map(([key, label]) =>
+      `<button type="button" data-action="nav" data-href="${calHref(v, d, sel, key)}" aria-pressed="${source === key}" class="${source === key ? 'on' : ''}">${label}</button>`
+    ).join('')}</div></div>`;
+
   let body = '';
-  if (v === 'month') body = monthView(d, sel, ws);
-  else if (v === 'week') body = timeGrid(startOfWeek(d, ws), 7);
-  else if (v === 'day') body = timeGrid(startOfDay(d), 1) + `<div class="card day-panel"><header><h3>할 일 (마감 ${d.getMonth() + 1}/${d.getDate()})</h3></header><div class="body">${dayTasks(d) || '<div class="empty">없음</div>'}</div></div>`;
-  else body = listView(d);
-  el.innerHTML = tools + body;
+  if (v === 'month') body = monthView(d, sel, ws, source);
+  else if (v === 'week') body = timeGrid(startOfWeek(d, ws), 7, source);
+  else if (v === 'day') body = timeGrid(startOfDay(d), 1, source) + `<div class="card day-panel"><header><h3>할 일 (마감 ${d.getMonth() + 1}/${d.getDate()})</h3></header><div class="body">${dayTasks(d) || '<div class="empty">없음</div>'}</div></div>`;
+  else body = listView(d, source);
+  el.innerHTML = tools + originControls + body;
 
   if (v === 'week' || v === 'day') {
     const sc = el.querySelector('.tg-scroll');
@@ -103,10 +111,10 @@ function dayTasks(d) {
 }
 
 // ───────── 월 보기 ─────────
-function monthView(d, sel, ws) {
+function monthView(d, sel, ws, source) {
   const start = startOfWeek(startOfMonth(d), ws);
   const end = addDays(start, 42);
-  const base = visibleFilter();
+  const base = visibleFilter(source);
   const vis = prefs.routinesInMonth ? base : (e) => base(e) && !isRoutineCal(calendarById(state, e._cal));
   const evs = eventsInRange(start, end, vis);
   const today = startOfDay(new Date());
@@ -136,8 +144,8 @@ function monthView(d, sel, ws) {
       .map((e) => {
         const c = colorOf(state, e._cal);
         if (isAllDay(e))
-          return `<div class="mchip allday" style="background:${esc(c)}" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}" title="${esc(e.summary || '')}">${esc(e.summary || '(제목 없음)')}</div>`;
-        return `<div class="mchip timed" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}" title="${esc(e.summary || '')}" style="border-left:3px solid ${esc(c)}"><span class="dot" style="background:${esc(c)}"></span><span class="tm">${fmtTime(evStart(e))}</span>${esc(e.summary || '(제목 없음)')}</div>`;
+          return `<div class="mchip allday" style="background:${esc(c)}" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}" title="${esc(e.summary || '')} · 등록 경로: ${SOURCE_LABELS[eventSource(e)]}">${sourceBadge(e, true)}${esc(e.summary || '(제목 없음)')}</div>`;
+        return `<div class="mchip timed" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}" title="${esc(e.summary || '')} · 등록 경로: ${SOURCE_LABELS[eventSource(e)]}" style="border-left:3px solid ${esc(c)}"><span class="dot" style="background:${esc(c)}"></span><span class="tm">${fmtTime(evStart(e))}</span>${sourceBadge(e, true)}${esc(e.summary || '(제목 없음)')}</div>`;
       })
       .join('');
     const more = normal.length > maxChips ? `<div class="more">+${normal.length - maxChips}</div>` : '';
@@ -148,7 +156,7 @@ function monthView(d, sel, ws) {
   const se = evs.filter((e) => overlapsDay(e, selected));
   const panel = `<section class="card day-panel"><header><h3>${fmtDate(selected)}</h3><span class="sub">${se.length}건</span>
       <button class="btn sm ghost end" data-action="new-event" data-date="${selected.getTime()}">${icon('plus')}일정</button>
-      <button class="btn sm ghost" data-action="nav" data-href="${calHref('day', selected)}">일 보기</button></header>
+      <button class="btn sm ghost" data-action="nav" data-href="${calHref('day', selected, null, source)}">일 보기</button></header>
     <div class="body">${se.map((e) => eventRow(e)).join('') || '<div class="empty">일정이 없습니다</div>'}
     ${dayTasks(selected) ? `<div class="group-h">마감 할 일</div>${dayTasks(selected)}` : ''}</div></section>`;
   return `<div class="month">${cells}</div>${panel}`;
@@ -181,16 +189,16 @@ function layoutDay(items) {
   return items;
 }
 
-function timeGrid(start, n) {
+function timeGrid(start, n, source) {
   const days = Array.from({ length: n }, (_, i) => addDays(start, i));
-  const vis = visibleFilter();
+  const vis = visibleFilter(source);
   const evs = eventsInRange(days[0], addDays(days[n - 1], 1), vis);
   const today = startOfDay(new Date());
   const now = new Date();
   const cols = `52px repeat(${n}, minmax(0, 1fr))`;
   const head = `<div class="tg-head" style="grid-template-columns:${cols}"><div></div>${days
     .map(
-      (d) => `<div class="${sameDay(d, today) ? 'today' : ''}" data-action="nav" data-href="${calHref('day', d)}" role="button">
+      (d) => `<div class="${sameDay(d, today) ? 'today' : ''}" data-action="nav" data-href="${calHref('day', d, null, source)}" role="button">
         <span style="${d.getDay() === 0 ? 'color:var(--danger)' : d.getDay() === 6 ? 'color:#3b6fd8' : ''}">${WEEKDAYS[d.getDay()]}</span><span class="dn">${d.getDate()}</span></div>`
     )
     .join('')}</div>`;
@@ -200,7 +208,7 @@ function timeGrid(start, n) {
       return `<div>${list
         .map(
           (e) =>
-            `<div class="mchip allday" style="background:${esc(colorOf(state, e._cal))}" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}">${esc(e.summary || '(제목 없음)')}</div>`
+            `<div class="mchip allday" style="background:${esc(colorOf(state, e._cal))}" data-action="open-event" data-cal="${esc(e._cal)}" data-id="${esc(e.id)}" title="${esc(e.summary || '')} · 등록 경로: ${SOURCE_LABELS[eventSource(e)]}">${sourceBadge(e, true)}${esc(e.summary || '(제목 없음)')}</div>`
         )
         .join('')}</div>`;
     })
@@ -223,8 +231,8 @@ function timeGrid(start, n) {
           const h = Math.max(((it.e - it.s) / 60) * HOUR - 2, 18);
           const w = 100 / it.n;
           return `<div class="tg-ev" style="top:${top}px;height:${h}px;left:calc(${it.col * w}% + 2px);width:calc(${w}% - 4px);background:${esc(colorOf(state, it.ev._cal))}"
-            data-action="open-event" data-cal="${esc(it.ev._cal)}" data-id="${esc(it.ev.id)}" title="${esc(it.ev.summary || '')}">
-            <b>${esc(it.ev.summary || '(제목 없음)')}</b><span>${fmtTime(evStart(it.ev))}–${fmtTime(evEnd(it.ev))}${it.ev.location ? ' · ' + esc(it.ev.location) : ''}</span></div>`;
+            data-action="open-event" data-cal="${esc(it.ev._cal)}" data-id="${esc(it.ev.id)}" title="${esc(it.ev.summary || '')} · 등록 경로: ${SOURCE_LABELS[eventSource(it.ev)]}">
+            <b>${sourceBadge(it.ev, true)}${esc(it.ev.summary || '(제목 없음)')}</b><span>${fmtTime(evStart(it.ev))}–${fmtTime(evEnd(it.ev))}${it.ev.location ? ' · ' + esc(it.ev.location) : ''}</span></div>`;
         })
         .join('');
       const nowLine = sameDay(d, today) ? `<div class="tg-now" style="top:${((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR}px"></div>` : '';
@@ -235,9 +243,9 @@ function timeGrid(start, n) {
 }
 
 // ───────── 목록 보기 ─────────
-function listView(d) {
+function listView(d, source) {
   const start = startOfDay(d);
-  const vis = visibleFilter();
+  const vis = visibleFilter(source);
   const evs = eventsInRange(start, addDays(start, 30), vis);
   const tasks = openTasks();
   let html = '';

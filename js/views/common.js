@@ -1,3 +1,4 @@
+import { sourceBadge } from '../event-source.js';
 import { state } from '../store.js';
 import { calendarById, calName, colorOf, listMeta } from '../areas.js';
 import { esc, icon } from '../ui.js';
@@ -10,6 +11,7 @@ export function eventRow(ev, { now = new Date(), timeLabel } = {}) {
   const past = !isAllDay(ev) && evEnd(ev) < now;
   const pending = String(ev.id).startsWith('tmp_') || state.outbox.some((o) => o.id === ev.id);
   const meta = [`<span class="row" style="gap:5px"><span class="dot" style="background:${esc(color)}"></span>${esc(calName(c) || '')}</span>`];
+  meta.push(sourceBadge(ev));
   if (ev.location) meta.push(`<span>${esc(ev.location)}</span>`);
   if (ev.recurringEventId) meta.push('<span>반복</span>');
   return `<div class="ev ${past ? 'past' : ''} ${pending ? 'pending' : ''}" data-action="open-event" data-cal="${esc(ev._cal)}" data-id="${esc(ev.id)}" role="button" tabindex="0">

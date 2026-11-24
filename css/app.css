@@ -776,6 +776,36 @@ textarea:focus-visible,
 }
 
 /* ───────── 캘린더 ───────── */
+.source-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.source-filter button { min-height: 36px; }
+.source-badge {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.source-badge.compact {
+  flex-shrink: 0;
+  padding: 0 2px;
+  border-color: currentColor;
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tg-ev .source-badge { margin-right: 3px; }
+
 .cal-tools {
   display: flex;
   align-items: center;

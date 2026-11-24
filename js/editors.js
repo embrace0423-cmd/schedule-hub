@@ -8,6 +8,7 @@ import {
 } from './dates.js';
 import { esc, icon, openModal, choose, confirmDlg, showToast } from './ui.js';
 import { prefs } from './prefs.js';
+import { SOURCE_LABELS, eventSource, descriptionWithSource } from './event-source.js';
 import { taskPriority, notesBody, buildNotes } from './taskutil.js';
 
 const hhmm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -19,12 +20,14 @@ const REM_OPTS = [
   [30, '30분 전'],
   [60, '1시간 전'],
   [120, '2시간 전'],
+  [180, '3시간 전'],
   [1440, '1일 전'],
 ];
 
 function remOf(ev) {
   if (!ev || !ev.reminders) return prefs.defReminder;
   if (ev.reminders.useDefault) return 'default';
+  if ((ev.reminders.overrides || []).length > 1) return 'keep';
   const o = (ev.reminders.overrides || []).find((x) => x.method === 'popup') || (ev.reminders.overrides || [])[0];
   return o ? o.minutes : -1;
 }
@@ -34,13 +37,50 @@ function remBody(v) {
   if (n < 0) return { useDefault: false, overrides: [] };
   return { useDefault: false, overrides: [{ method: 'popup', minutes: n }] };
 }
-function remSelect(cur) {
+function remSelect(cur, ev) {
   const opts = [...REM_OPTS];
-  if (cur === 'default') opts.unshift(['default', '캘린더 기본 알림']);
+  if (cur === 'keep') {
+    const labels = ev.reminders.overrides.map(({ method, minutes }) => {
+      const time = REM_OPTS.find(([v]) => v === minutes)?.[1] || `${minutes}분 전`;
+      return method === 'email' ? `메일 ${time}` : time;
+    });
+    opts.unshift(['keep', '기존 알림 유지 (' + labels.join(' · ') + ')']);
+  } else if (cur === 'default') opts.unshift(['default', '캘린더 기본 알림']);
   else if (!opts.some(([v]) => v === Number(cur))) opts.push([Number(cur), `${cur}분 전`]);
   return `<select name="rem">${opts
-    .map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${l}</option>`)
+    .map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`)
     .join('')}</select>`;
+}
+
+// 기존 메모와 알림은 직접 바꾼 경우에만 패치한다. 한 회차의 알림을 시리즈 전체에 덮어쓰지 않는다.
+function noteAndReminderPatch(ev, note, reminder) {
+  const patch = {};
+  if (!ev || note !== (ev.description || '')) {
+    patch.description = descriptionWithSource(note.trim(), eventSource(ev));
+  }
+  if (!ev || reminder !== String(remOf(ev))) patch.reminders = remBody(reminder);
+  return patch;
+}
+
+function originField(ev, readOnly) {
+  if (!ev) return '';
+  const source = eventSource(ev);
+  if (readOnly || source !== 'unknown') {
+    return `<div class="field"><span class="lbl">등록 경로</span><span>${SOURCE_LABELS[source]}</span></div>`;
+  }
+  return `<div class="field"><label for="event-origin">등록 경로${ev.recurringEventId ? ' (이 회차만)' : ''}</label>
+    <select id="event-origin" name="origin"><option value="">미표시</option><option value="gpt">GPT</option><option value="claude">Claude</option></select></div>`;
+}
+
+function originPatch(calId, id, value, description) {
+  if (!['gpt', 'claude'].includes(value)) return {};
+  const ev = store.getEvent(calId, id);
+  if (!ev || eventSource(ev) !== 'unknown') return {};
+  const props = ev.extendedProperties || {};
+  return {
+    description: descriptionWithSource(description ?? ev.description, value),
+    extendedProperties: { ...props, private: { ...props.private, scheduleHubSource: value } },
+  };
 }
 
 function areaPick(list, cur, name = 'cal', disabled = false) {
@@ -178,9 +218,10 @@ export function openEventEditor({ calId, id, defaults = {} } = {}) {
       <div class="field"><label>반복</label><select name="repeat">${
         customRule ? `<option value="CUSTOM" selected>사용자 지정 (빠른 입력)</option>` : ''
       }${repeatOpts.map(([v, l]) => `<option value="${v}" ${v === repeatCur ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="field"><label>알림</label>${remSelect(ev ? remOf(ev) : prefs.defReminder)}</div>
+      <div class="field"><label>알림</label>${remSelect(ev ? remOf(ev) : prefs.defReminder, ev)}</div>
     </div>
     <div class="field"><label>장소</label><input type="text" name="loc" placeholder="장소" value="${esc(ev ? ev.location || '' : defaults.location || '')}"></div>
+    ${originField(ev, readOnly)}
     <div class="field"><label>메모</label><textarea name="desc" placeholder="메모">${esc(ev ? ev.description || '' : '')}</textarea></div>
     ${ev && ev.htmlLink ? `<a class="hint" href="${esc(ev.htmlLink)}" target="_blank" rel="noopener">${icon('link')} Google 캘린더에서 열기</a>` : ''}
   `;
@@ -222,8 +263,7 @@ export function openEventEditor({ calId, id, defaults = {} } = {}) {
         const out = {
           summary: f('title').value.trim() || '(제목 없음)',
           location: f('loc').value.trim(),
-          description: f('desc').value.trim(),
-          reminders: remBody(f('rem').value),
+          ...noteAndReminderPatch(ev, f('desc').value, f('rem').value),
         };
         let start, end;
         if (ad) {
@@ -256,9 +296,10 @@ export function openEventEditor({ calId, id, defaults = {} } = {}) {
           showToast('일정을 추가했습니다');
           return;
         }
+        const origin = originPatch(calId, id, f('origin')?.value, out.description);
         if (!recurringInstance) {
           if (rep !== 'NONE') out.recurrence = [repeatToRule(rep, start)];
-          store.updateEvent(calId, id, out, { moveTo: target });
+          store.updateEvent(calId, id, { ...out, ...origin }, { moveTo: target });
           close();
           showToast('저장했습니다');
           return;
@@ -273,12 +314,13 @@ export function openEventEditor({ calId, id, defaults = {} } = {}) {
         });
         if (!scope) return;
         if (scope === 'one') {
-          store.updateEvent(calId, id, out);
+          store.updateEvent(calId, id, { ...out, ...origin });
           close();
           showToast('이 일정만 저장했습니다');
           return;
         }
         await saveSeries(calId, ev, out, rep, start, target);
+        if (origin.extendedProperties) store.updateEvent(target, id, origin);
         close();
       });
 
@@ -308,8 +350,8 @@ export function openEventEditor({ calId, id, defaults = {} } = {}) {
 // 반복 일정 전체 수정: 원본의 시작 날짜는 유지하고 시간·길이·내용·반복만 바꾼다.
 async function saveSeries(calId, inst, out, rep, newStart, targetCal) {
   const masterId = inst.recurringEventId;
-  const patch = { summary: out.summary, location: out.location, description: out.description, reminders: out.reminders };
-  const timeChanged = JSON.stringify(out.start) !== JSON.stringify(inst.start) || JSON.stringify(out.end) !== JSON.stringify(inst.end);
+  const { start: instanceStart, end: instanceEnd, ...patch } = out;
+  const timeChanged = JSON.stringify(instanceStart) !== JSON.stringify(inst.start) || JSON.stringify(instanceEnd) !== JSON.stringify(inst.end);
   if (timeChanged || rep !== 'KEEP') {
     let master;
     try {
@@ -486,7 +528,7 @@ export async function openRoutineEditor({ calId, instanceId, defaults = {} } = {
         .map((m) => `<option value="${m}" ${m === dur ? 'selected' : ''}>${m < 60 ? m + '분' : m / 60 + '시간'}</option>`)
         .join('')}</select></div>
     </div>
-    <div class="field"><label>알림</label>${remSelect(inst ? remOf(inst) : prefs.defReminder)}</div>
+    <div class="field"><label>알림</label>${remSelect(inst ? remOf(inst) : prefs.defReminder, inst)}</div>
     <div class="field"><label>메모</label><textarea name="desc" placeholder="목표, 방법 등">${esc(inst ? inst.description || '' : '')}</textarea></div>
     <div class="hint">"${esc(rc.summary)}" 캘린더에 반복 일정으로 저장되어 삼성 캘린더 알림으로도 받을 수 있습니다.${inst && !master ? ' (오프라인 상태: 요일 변경은 온라인에서 가능합니다)' : ''}</div>
   `;
@@ -541,8 +583,7 @@ export async function openRoutineEditor({ calId, instanceId, defaults = {} } = {
         };
         const common = {
           summary: title,
-          description: f('desc').value.trim(),
-          reminders: remBody(f('rem').value),
+          ...noteAndReminderPatch(inst, f('desc').value, f('rem').value),
         };
         if (isNew) {
           // 첫 회차: 오늘부터 해당 요일 중 가장 빠른 날
