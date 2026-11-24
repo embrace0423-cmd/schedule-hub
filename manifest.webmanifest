@@ -3,7 +3,7 @@
   "short_name": "스케줄 허브",
   "description": "Google 캘린더·갤럭시 삼성 캘린더와 동기화되는 일정·할 일·루틴 통합 관리",
   "id": "./",
-  "start_url": "./#/today",
+  "start_url": "./#/calendar",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

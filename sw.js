@@ -1,14 +1,14 @@
 // 앱 화면만 캐시한다. Google API·인증·일정 데이터는 가로채거나 삭제하지 않는다.
-const VERSION = 'sh-v1.0.9';
+const VERSION = 'sh-v1.1.0';
 const SCOPE = new URL('./', self.location.href);
 const ASSETS = [
   './', 'config.js', 'css/app.css', 'css/calendar-swipe.css',
-  'css/calendar-swipe.css?v=1.0.9',
+  'css/calendar-swipe.css?v=1.1.0',
   'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/icon-192.png',
   'icons/icon-512.png', 'icons/maskable-512.png', 'index.html',
   'js/app-version.js', 'js/areas.js', 'js/auth.js', 'js/calendar-swipe.js',
-  'js/calendar-swipe.js?v=1.0.9', 'js/dates.js', 'js/db.js',
-  'js/editors.js', 'js/event-complete.js', 'js/gapi.js', 'js/main.js', 'js/main.js?v=1.0.9',
+  'js/calendar-swipe.js?v=1.1.0', 'js/dates.js', 'js/db.js',
+  'js/editors.js', 'js/event-complete.js', 'js/event-source.js', 'js/gapi.js', 'js/main.js', 'js/main.js?v=1.1.0',
   'js/mock.js', 'js/nlp.js', 'js/prefs.js', 'js/routines.js', 'js/store.js',
   'js/taskutil.js', 'js/ui.js', 'js/views/calendar.js', 'js/views/common.js',
   'js/views/routines.js', 'js/views/search.js', 'js/views/settings.js',

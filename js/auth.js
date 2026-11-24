@@ -67,7 +67,7 @@ export function startLogin({ silent = false, consent = false } = {}) {
   const clientId = getClientId();
   if (!clientId) throw new Error('CLIENT_ID 가 설정되지 않았습니다.');
   const state = rand();
-  const route = location.hash && location.hash.startsWith('#/') ? location.hash : '#/today';
+  const route = location.hash && location.hash.startsWith('#/') ? location.hash : '#/calendar';
   ls.set(K_STATE, { state, silent, route, at: Date.now() });
   if (silent) ls.set(K_SILENT, Date.now());
   const p = new URLSearchParams({
@@ -92,7 +92,7 @@ export function handleRedirect() {
   const params = new URLSearchParams(h.slice(1));
   const saved = ls.get(K_STATE) || {};
   ls.del(K_STATE);
-  const route = saved.route || '#/today';
+  const route = saved.route || '#/calendar';
   history.replaceState(null, '', location.pathname + location.search + route);
   if (!saved.state || params.get('state') !== saved.state) {
     return { ok: false, error: 'state_mismatch', silent: !!saved.silent };
